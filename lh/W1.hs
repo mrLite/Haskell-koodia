@@ -170,7 +170,13 @@ hassuMinimi a b
 -- tarvitset rekursiiviisen apufunktion
 
 pyramidi :: Integer -> String
-pyramidi = undefined
+pyramidi n = pyramidi' n 0 "0"
+
+pyramidi' :: Integer -> Integer -> String -> String
+pyramidi' n k str
+	| n == 0 = str
+	| k < n = pyramidi' n (k+1) (str ++ "," ++ show (k+1))
+	| k >= n = pyramidi' (n-1) k (str ++ "," ++ show (n-1))
 
 -- Tehtävä 17: toteuta funktio smallestDivisor n, joka palauttaa
 -- pienimmän luvun k>1 s.e. n on jaollinen k:lla.
