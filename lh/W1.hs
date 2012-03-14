@@ -27,7 +27,7 @@ poly2 a b c x = a*x*x + b*x + c
 
 entten :: Integer -> String
 entten x
-	| mod x 2 == 0 = "entten"
+	| even x = "entten"
 	| otherwise = "tentten"
 
 -- Tehtävä 6: toteuta funktio fizzbuzz joka palauttaa 3:lla
@@ -134,7 +134,11 @@ myGcd a b = myGcd b (mod a b)
 -- 2. Muuten lukujen järjestys on normaali
 
 hassuCompare :: Int -> Int -> Ordering
-hassuCompare = undefined
+hassuCompare a b
+	| even a && even b = compare a b
+	| even a && odd b = LT
+	| odd a && even b = GT
+	| otherwise = compare a b
 
 -- Tehtävä 15: Toteuta funktio hassuMinimi :: Int -> Int -> Int, joka
 -- palauttaa hassuComparen mielestä pienimmän argumenteistaan. Käytä
@@ -147,7 +151,9 @@ hassuCompare = undefined
 -- Huomio: käytä hassuCompare-funktiota
 
 hassuMinimi :: Int -> Int -> Int
-hassuMinimi = undefined
+hassuMinimi a b
+	| hassuCompare a b == LT = a
+	| otherwise = b
 
 
 -- Tehtävä 16: toteuta funktio pyramidi, joka tuottaa tällaisia
@@ -170,7 +176,13 @@ pyramidi = undefined
 -- pienimmän luvun k>1 s.e. n on jaollinen k:lla.
 
 smallestDivisor :: Integer -> Integer
-smallestDivisor = undefined
+smallestDivisor n = smallestDivisor' n 2
+
+smallestDivisor' :: Integer -> Integer -> Integer
+smallestDivisor' n k
+	| mod n k == 0 = k
+	| k*k > n = n
+	| otherwise = smallestDivisor' n (k+1)
 
 -- Tehtävä 18: toteuta funktio isPrime, joka tarkistaa onko annettu
 -- luku alkuluku käyttämällä funktiota smallestDivisor.
@@ -179,12 +191,16 @@ smallestDivisor = undefined
 -- itsellään ja 1:llä. 0 ja 1 eivät ole alkulukuja.
 
 isPrime :: Integer -> Bool
-isPrime = undefined
+isPrime n
+	| n < 2 = False
+	| smallestDivisor n == n = True
+	| otherwise = False
 
 -- Tehtävä 19: toteuta funktio nextPrime, joka palauttaa annettua
 -- lukua seuraavan alkuluvun. Tässä kannattaa luonnollisesti käyttää
 -- apuna funktiota isPrime.
 
 nextPrime :: Integer -> Integer
-nextPrime = undefined
-
+nextPrime n
+	| isPrime n == True = n
+	| otherwise = nextPrime (n+1)
