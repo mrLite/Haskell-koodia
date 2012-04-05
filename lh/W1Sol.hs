@@ -2,62 +2,59 @@ module W1 where
 
 -- Tehtävä 1: määrittele muuttujat one, two, ja three. Kaikkien tyyppi
 -- on Int ja arvot ovat 1, 2 ja 3. Tälle tehtävälle ei ole testejä.
-one :: Int
-one = 1
-two :: Int
-two = 2
-three :: Int
-three = 3
 
 -- Tehtävä 2: määrittele funktio double, joka on tyyppiä Integer->Integer.
 -- double ottaa yhden argumentin ja palauttaa sen kaksinkertaisena.
 
 double :: Integer -> Integer
-double x = 2 * x
+double x = 2*x
 
 -- Tehtävä 3: määrittele funktio quadruple, joka käyttää funktiota
 -- double nelinkertaistamaan annetun luvun.
 
 quadruple :: Integer -> Integer
-quadruple x = 2 * double x
+quadruple x = double (double x)
 
 -- Tehtävä 4: määrittele tehtävä poly2, joka ottaa neljä
 -- Double-tyyppistä argumenttia, a, b,c ja x. Funktion arvo on 2.
 -- asteen polynomin, jonka kertoimet ovat a, b ja c arvo pisteessä x.
 
 poly2 :: Double -> Double -> Double -> Double -> Double
-poly2 a b c x = a*x*x + b*x + c
+poly2 a b c x = a*x*x+b*x+c
 
 -- Tehtävä 5: toteuta alle funktio entten, joka palauttaa parillisille
 -- argumenteille merkkijonon "entten" ja parittomille "tentten"
+--
+-- Ps. Kannattaa katsoa mitä funktio even tekee
 
 entten :: Integer -> String
-entten x
-	| even x = "entten"
-	| otherwise = "tentten"
+entten i = if even i then "entten" else "tentten"
 
 -- Tehtävä 6: toteuta funktio fizzbuzz joka palauttaa 3:lla
 -- jaollisille luvuille "Fizz", 5:llä jaollisille "Buzz" ja
 -- kummallakin 3:lla ja 5:llä jaollisille "FizzBuzz". Muille luvuille
 -- funktio palauttaa tyhjän merkkijonon.
-
--- Muista funktio mod joka laskee jakojäännöksen!
+--
+-- Jakojäännöksen voit laskea funktiolla mod
 
 fizzbuzz :: Integer -> String
-fizzbuzz x
-	| mod x 15 == 0 = "FizzBuzz"
-	| mod x 5 == 0 = "Buzz"
-	| mod x 3 == 0 = "Fizz"
-	| otherwise = ""
+fizzbuzz n = if divides 3 n && divides 5 n
+             then "FizzBuzz"
+             else if divides 3 n    
+                  then "Fizz"
+                  else if divides 5 n
+                       then "Buzz"
+                       else ""
+  where divides k n = mod n k == 0
 
 -- Tehtävä 7: toteuta funktio isZero, joka palauttaa True jos
 -- parametri on 0 ja False muuten. KÄYTÄ HAHMONSOVITUSTA!
-
--- Huom! Totuusarvot Haskellissa ovat tyyppiä Bool.
+--
+-- Muistathan, totuusarvot Haskellissa ovat tyyppiä Bool.
 
 isZero :: Integer -> Bool
 isZero 0 = True
-isZero x = False
+isZero _ = False
 
 -- Tehtävä 8: toteuta rekursiivinen funktio sumTo n, joka laskee
 -- summan 1+2+...+n
@@ -78,7 +75,7 @@ power n k = n * power n (k-1)
 
 ilog2 :: Integer -> Integer
 ilog2 1 = 0
-ilog2 x = 1 + ilog2 (div x 2)
+ilog2 n = 1 + ilog2 (div n 2)
 
 -- Tehtävä 11: toteuta rekursiivinen funktio binomial, joka laskee
 -- binomikertoimen. Binomikertoimen määrittelee seuraava
@@ -108,19 +105,23 @@ binomial n k = binomial (n-1) k + binomial (n-1) (k-1)
 -- fibonacci-esimerkissä
 
 tribonacci :: Integer -> Integer
-tribonacci n = tribonacci' 1 1 2 n
+tribonacci 1 = 1
+tribonacci 2 = 1
+tribonacci n = tribonacci' 1 1 2 (n-2)
 
 tribonacci' :: Integer -> Integer -> Integer -> Integer -> Integer
-tribonacci' a b c 1 = a
+tribonacci' a b c 1 = c
 tribonacci' a b c n = tribonacci' b c (a+b+c) (n-1)
 
--- Tehtävä 13: Eulerin algoritmi on tapa laskea kahden luvun pienin
+-- Tehtävä 13: Eukleideen algoritmi on tapa laskea kahden luvun suurin
 -- yhteinen tekijä. Lue algoritmin kuvaus wikipediasta ja toteuta se
 -- funktioksi myGcd :: Integer -> Integer -> Integer
 
 myGcd :: Integer -> Integer -> Integer
-myGcd a 0 = a
-myGcd a b = myGcd b (mod a b)
+myGcd 0 y = y
+myGcd x y = if x<y
+            then myGcd y x
+            else myGcd (x-y) y
 
 -- Tehtävä 14: Haskellin standardikirjasto määrittelee tyypin
 -- Ordering, jonka arvot ovat LT, GT ja EQ. Voit kokeilla miten
@@ -139,10 +140,13 @@ myGcd a b = myGcd b (mod a b)
 -- 2. Muuten lukujen järjestys on normaali
 
 hassuCompare :: Int -> Int -> Ordering
-hassuCompare a b
-	| even a && odd b = LT
-	| odd a && even b = GT
-	| otherwise = compare a b
+hassuCompare x y = if even x
+                   then if even y
+                        then compare x y
+                        else LT
+                   else if even y
+                        then GT
+                        else compare x y
 
 -- Tehtävä 15: Toteuta funktio hassuMinimi :: Int -> Int -> Int, joka
 -- palauttaa hassuComparen mielestä pienimmän argumenteistaan. Käytä
@@ -155,62 +159,66 @@ hassuCompare a b
 -- Huomio: käytä hassuCompare-funktiota
 
 hassuMinimi :: Int -> Int -> Int
-hassuMinimi a b
-	| hassuCompare a b == LT = a
-	| otherwise = b
+hassuMinimi x y = apu (hassuCompare x y) x y
+  where apu LT x _ = x
+        apu _  _ y = y
 
 
 -- Tehtävä 16: toteuta funktio pyramidi, joka tuottaa tällaisia
 -- merkkijonoja:
-
+--
 -- pyramidi 0: "0"
 -- pyramidi 1: "0,1,0"
 -- pyramidi 2: "0,1,2,1,0"
 -- pyramidi 3: "0,1,2,3,2,1,0"
-
+--
 -- Vihjeitä:
--- merkkijonoja liitetään yhteen operaattorilla ++
--- funktio show muuntaa luvun merkkijonoksi
--- tarvitset rekursiiviisen apufunktion
+-- * merkkijonoja liitetään yhteen operaattorilla ++
+-- * funktio show muuntaa luvun merkkijonoksi
+-- * tarvitset rekursiiviisen apufunktion
 
 pyramidi :: Integer -> String
-pyramidi n = pyramidi' n 0 "0"
+pyramidi n = apu 0 n
 
-pyramidi' :: Integer -> Integer -> String -> String
-pyramidi' 0 _ str = str
-pyramidi' n k str
-	| k < n = pyramidi' n (k+1) (str ++ "," ++ show (k+1))
-	| k >= n = pyramidi' (n-1) k (str ++ "," ++ show (n-1))
+apu k 0 = show k
+apu k n = show k ++ "," ++ apu (k+1) (n-1) ++ "," ++ show k
 
 -- Tehtävä 17: toteuta funktio smallestDivisor n, joka palauttaa
 -- pienimmän luvun k>1 s.e. n on jaollinen k:lla.
+--
+-- Kannattaa muistaa funktio mod
+--
+-- Huom! smallestDivisor 1 ja smallestDivisor 0 ovat helposti
+-- loputtomia rekursioita. Muista tämä seuraavassa tehtävässä.
 
 smallestDivisor :: Integer -> Integer
-smallestDivisor n = smallestDivisor' n 2
+smallestDivisor n = smallestDivisor' 2 n
 
-smallestDivisor' :: Integer -> Integer -> Integer
-smallestDivisor' n k
-	| mod n k == 0 = k
-	| k*k > n = n
-	| otherwise = smallestDivisor' n (k+1)
+smallestDivisor' k n =
+  if mod n k == 0
+  then k
+  else smallestDivisor' (k+1) n
 
 -- Tehtävä 18: toteuta funktio isPrime, joka tarkistaa onko annettu
 -- luku alkuluku käyttämällä funktiota smallestDivisor.
-
+--
 -- Alkuluku on luku joka ei ole jaollinen muilla luvuilla kuin
 -- itsellään ja 1:llä. 0 ja 1 eivät ole alkulukuja.
 
 isPrime :: Integer -> Bool
-isPrime n
-	| n < 2 = False
-	| smallestDivisor n == n = True
-	| otherwise = False
+isPrime 0 = False
+isPrime 1 = False
+isPrime i = smallestDivisor i == i
 
 -- Tehtävä 19: toteuta funktio nextPrime, joka palauttaa annettua
--- lukua seuraavan alkuluvun. Tässä kannattaa luonnollisesti käyttää
--- apuna funktiota isPrime.
+-- lukua seuraavan alkuluvun. Jos luku on alkuluku, palautetaan se
+-- itse. Ts. nextPrime n ==> k s.e. k >= n ja k on alkuluku.
+--
+-- Tässä kannattaa luonnollisesti käyttää apuna funktiota isPrime.
 
 nextPrime :: Integer -> Integer
-nextPrime n
-	| isPrime n = n
-	| otherwise = nextPrime (n+1)
+nextPrime n =
+  if isPrime n
+  then n
+  else nextPrime (n+1)
+
