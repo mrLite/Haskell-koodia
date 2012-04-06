@@ -57,14 +57,22 @@ lueKunnes f = do
 -- ensimmäistä fibonaccin lukua, yhden per rivi
 
 printFibs :: Int -> IO ()
-printFibs n = undefined
+printFibs n = mapM_ print $ take n fibs
+
+fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 
 -- Tehtävä 7: Määrittele operaatio isums n, joka lukee käyttäjältä n
 -- lukua ja palauttaa niitten summan. Lisäksi jokaisen luvun jälkeen
 -- tulostetaan siihenastinen summa luvuista.
 
 isums :: Int -> IO Int
-isums n = undefined
+isums n = isums' n 0
+
+isums' 0 s = return s
+isums' n s = do
+	l <- readLn
+	print $ l+s
+	isums' (n-1) (l+s)
 
 -- Tehtävä 8: when on hyödyllinen funktio, mutta sen ensimmäien
 -- argumentti on tyyppiä Bool. Toteuta whenM joka toimii samoin mutta
