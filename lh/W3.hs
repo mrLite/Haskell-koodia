@@ -25,7 +25,7 @@ hei = putStrLn "HEI" >> putStrLn "MAAILMA"
 -- tulostaa "HEI nimi"
 
 tervehdi :: String -> IO ()
-tervehdi s = putStrLn $ "HEI "++s
+tervehdi = putStrLn . ("HEI " ++)
 
 -- Tehtävä 3: Määrittele operaatio tervehdi', joka lukee nimen
 -- näppäimistöltä ja sitten tervehtii kuten edellisessä tehtävässä.
@@ -45,13 +45,7 @@ lueSanat n = replicateM n getLine >>= return . sort
 -- True ei liitetä listaan).
 
 lueKunnes :: (String -> Bool) -> IO [String]
-lueKunnes f = do
-	w <- getLine
-	if f w
-		then return []
-		else do
-			ws <- lueKunnes f
-			return $ w:ws
+lueKunnes f = getLine >>= (\w -> if f w then return [] else lueKunnes f >>= (\ws -> return $ w:ws))
 
 -- Tehtävä 6: Määrittele operaatio printFibs n, joka tulostaa n
 -- ensimmäistä fibonaccin lukua, yhden per rivi
@@ -79,7 +73,7 @@ isums' n s = do
 -- ehto on tyyppiä IO Bool.
 
 whenM :: IO Bool -> IO () -> IO ()
-whenM cond op = undefined
+whenM cond op = cond >>= (\bool -> when bool op)
 
 -- Tehtävä 9: Toteuta funktio while ehto operaatio, joka suorittaa
 -- operaatiota niin kauan kun ehto palauttaa True.
@@ -96,7 +90,7 @@ whenM cond op = undefined
 -- Tämä tulostaa JEE niin kauan kuin käyttäjä vastaa K
 
 while :: IO Bool -> IO () -> IO ()
-while ehto op = undefined
+while ehto op = ehto >>= (\bool -> if bool then do {op; while ehto op} else return ())
 
 -- Tehtävä 10: Toteuta funktio debug, joka ottaa merkkijonon s ja
 -- IO-operaation op, ja palauttaa IO-operaation joka tulostaa annetun
@@ -104,19 +98,21 @@ while ehto op = undefined
 -- palauttaa op:n palautusarvo.
 
 debug :: String -> IO a -> IO a
-debug s op = undefined
+debug s op = putStrLn s >> op >>= (\res -> do {putStrLn s; return res})
 
 -- Tehtävä 11: Toteuta itse funktio mapM_. Saat käyttää (puhtaita)
 -- listafunktioita ja listojen hahmontunnistusta
 
 mymapM_ :: (a -> IO b) -> [a] -> IO ()
-mymapM_ = undefined
+mymapM_ f [] = return ()
+mymapM_ f (x:xs) = f x >> mymapM_ f xs
 
 -- Tehtävä 12: Toteuta itse funktio forM. Saat käyttää (puhtaita)
 -- listafunktioita ja listojen hahmontunnistusta
 
 myforM :: [a] -> (a -> IO b) -> IO [b]
-myforM as f = undefined
+myforM [] f = return []
+myforM (x:xs) f = f x >>= (\y -> myforM xs f >>= (\ys -> return $ y:ys))
 
 -- Tehtävä 13: Joskus törmää IO-operaatioihin jotka palauttavat
 -- IO-operaatiota. Esimerkiksi IO-operaatio joka palauttaa
@@ -145,7 +141,7 @@ myforM as f = undefined
 -- tyypintarkastuksesta läpi, se on lähes välttämättä oikein.
 
 tuplaKutsu :: IO (IO a) -> IO a
-tuplaKutsu op = undefined
+tuplaKutsu op = op >>= (\op2 -> op2)
 
 -- Tehtävä 14: Monesti IO-operaatioita halutaan ketjuttaa. Toteuta
 -- funktio yhdista joka toimii hieman kuten operaattori (.)
@@ -166,7 +162,7 @@ tuplaKutsu op = undefined
 -- tyypintarkastuksesta läpi, se on lähes välttämättä oikein.
 
 yhdista :: (a -> IO b) -> (c -> IO a) -> c -> IO b
-yhdista op1 op2 = undefined
+yhdista op1 op2 = op1 <=< op2
 
 -- Tehtävä 15: Tutustu modulin Data.IORef dokumentaatioon
 -- <http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-IORef.html>
@@ -180,7 +176,12 @@ yhdista op1 op2 = undefined
 -- Kyseessä on siis yksinkertainen tilallinen laskuri
 
 mkCounter :: IO (IO (), IO Int)
-mkCounter = undefined
+mkCounter = do
+	counter <- newIORef 0
+	let
+		get = readIORef counter
+		inc = get >>= writeIORef counter . (+1)
+	return (inc, get)
 
 -- Tehtävä 16: Toteuta operaatio hFetchLines, joka hakee annetusta
 -- tiedostoskahvasta rivit, joitten rivinumerot (rivinumerointi alkaa
@@ -190,7 +191,7 @@ mkCounter = undefined
 -- Modulin System.IO dokumentaatio auttanee.
 
 hFetchLines :: Handle -> [Int] -> IO [String]
-hFetchLines h nums = undefined
+hFetchLines h nums = hGetContents h >>= return . map (snd) . filter (\(n, _) -> elem n nums) . zipWith (\n line -> (n, line)) [1..] . lines
 
 -- Tehtävä 17: CSV on tiedostoformaatti, jossa taulukollinen arvoja on
 -- tallenettu tiedostoon niin, että tiedoston yksi rivi vastaa
@@ -205,7 +206,10 @@ hFetchLines h nums = undefined
 -- Huom! Eri riveillä voi olla eri määrä kenttiä
 
 readCSV :: FilePath -> IO [[String]]
-readCSV path = undefined
+-- readCSV path = readFile path >>= return . map (csvLine) . lines
+readCSV = fmap (map csvLine . lines) . readFile
+
+csvLine = filter (\x -> x /= ",") . groupBy (\x y -> (x /= ',') == (y /= ','))
 
 -- Tehtävä 18: Toteuta operaatio compareFiles, joka saa kaksi
 -- tiedostonimeä, a ja b. Tiedostojen sisältöjen haluttaisiin olevan
@@ -248,7 +252,15 @@ readCSV path = undefined
 -- [String] -> [String]).
 
 compareFiles :: FilePath -> FilePath -> IO ()
-compareFiles a b = undefined
+compareFiles a b = do
+	x <- readFile a
+	y <- readFile b
+	putStr . concat $ zipWith (compareLines) (lines x) (lines y)
+
+compareLines :: String -> String -> String
+compareLines m n
+	| m == n = ""
+	| otherwise = "< " ++ m ++ "\n" ++ "> " ++ n ++ "\n"
 
 -- Tehtävä 19: Tässä tehtävässä näet miten funktionaalisessa
 -- ohjelmassa logiikan voi toteuttaa puhtaana funktiona, jota ympäröi
@@ -275,5 +287,8 @@ compareFiles a b = undefined
 --
 
 interact' :: ((String,a) -> (Bool,String,a)) -> a -> IO a
-interact' f state = undefined
-
+interact' f state = do
+	line <- getLine
+	let (bool, output, newState) = f (line, state)
+	putStr output
+	if bool then interact' f newState else return newState
