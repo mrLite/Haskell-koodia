@@ -273,7 +273,7 @@ insertL x (Node y left right) = Node y (insertL x left) right
 
 measure :: Tree a -> Tree Int
 measure Leaf = Leaf
-measure tree = let (Node a left right) = tree in Node (treeSize tree) (measure left) (measure right)
+measure tree@(Node a left right) = Node (treeSize tree) (measure left) (measure right)
 
 -- Tehtävä 17: Standardikirjaston funktio
 --   foldr :: (a -> b -> b) -> b -> [a] -> b

@@ -37,7 +37,8 @@ tervehdi' = getLine >>= tervehdi
 -- sanaa (yksi per rivi) ja palauttaa ne aakkosjärjestyksessä
 
 lueSanat :: Int -> IO [String]
-lueSanat n = replicateM n getLine >>= return . sort
+-- lueSanat n = replicateM n getLine >>= return . sort
+lueSanat n = fmap sort $ replicateM n getLine
 
 -- Tehtävä 5: Määrittele operaatio lueKunnes f, joka lukee käyttäjältä
 -- merkkijonoja ja palauttaa ne listana. Lukeminen lopetetaan kun f
