@@ -14,9 +14,7 @@ import Data.List
 allEqual :: Eq a => [a] -> Bool
 allEqual [] = True
 allEqual (x:[]) = True
-allEqual (y:x:xs)
-	| y == x = allEqual (x:xs)
-	| otherwise = False
+allEqual (y:x:xs) = y == x && allEqual (x:xs)
 
 -- Tehtävä 2: Määrittele funktio secondSmallest, joka palauttaa listan
 -- toisiksi pienimmän alkion (käärittynä Justiin). Jos toisiksi
@@ -52,17 +50,11 @@ secondSmallest xs = Just $ head . drop 1 $ sort xs
 --    ==> Just "3 /= 4"
 
 findDifference :: (Eq a, Show a) => [a] -> [a] -> Maybe String
-findDifference xs ys = let
-	lxs = length xs
-	lys = length ys
-	in case lxs == lys of
-		False -> Just $ show lxs ++ " /= " ++ show lys
-		True -> mfindIndex xs ys
-
-mfindIndex :: (Eq a, Show a) => [a] -> [a] -> Maybe String
-mfindIndex [] [] = Nothing
-mfindIndex (x:xs) (y:ys)
-	| x == y = mfindIndex xs ys
+findDifference [] [] = Nothing
+findDifference xs ys
+	| length xs /= length ys = Just $ show (length xs) ++ " /= " ++ show (length ys)
+findDifference (x:xs) (y:ys)
+	| x == y = findDifference xs ys
 	| otherwise = Just $ show x ++ " /= " ++ show y
 
 -- Tehtävä 4: Määrittele funktio average, joka laskee annettujen
@@ -100,9 +92,9 @@ instance Ord Foo where
 	compare x y
 		| x == y = EQ		
 	compare Quux _ = LT
+	compare _ Quux = GT
 	compare Xyzzy _ = GT
-	compare Bar Quux = GT
-	compare Bar Xyzzy = LT
+	compare _ Xyzzy = LT
   
 -- Tehtävä 7: Tässä on 3d-vektorityyppi Vector. Määrittele sille Eq-instanssi.
 --
@@ -132,7 +124,7 @@ instance Num Vector where
 	negate (Vector a b c) = Vector (negate a) (negate b) (negate c)
 	abs (Vector a b c) = Vector (abs a) (abs b) (abs c)
 	signum (Vector a b c) = Vector (signum a) (signum b) (signum c)
-	fromInteger a = Vector (fromInteger a) (fromInteger a) (fromInteger a)
+	fromInteger a = Vector a a a
 
 -- Tehtävä 9: Määrittele funktio freqs, joka laskee kuinka monta
 -- kertaa kukin alkio esiintyy listassa.
@@ -141,9 +133,13 @@ instance Num Vector where
 -- freqs [False,False,False]
 --   ==> [(3,False)]
 
-freqs :: (Eq a, Ord a) => [a] -> [(Int,a)]
--- freqs xs = undefined
-freqs = map (\ys -> (length ys, head ys)) . group . sort
+freqs :: Eq a => [a] -> [(Int,a)]
+freqs xs = freqs' xs $ nub xs
+
+freqs' _ [] = []
+freqs' [] _ = []
+freqs' ls (e:es) = let (matches, rest) = partition (== e) ls
+	in (length matches, e) : freqs' rest es
 
 -- Tehtävä 10: Määrittele allaolevalle kokonaislukuja sisältävän
 -- binääripuun tyypille Eq-instanssi.
@@ -224,9 +220,8 @@ instance Functor Fun where
 --   undefined ||| True  ==> True
 
 (|||) :: Bool -> Bool -> Bool
-x ||| y = case y of
-	True -> y
-	_ -> x
+_ ||| True = True
+x ||| False = x
 
 -- Tehtävä 17: Määrittele funktio boolLength joka palauttaa
 -- Bool-listan pituuden ja pakottaa kaikki listan alkiot.
@@ -304,4 +299,4 @@ randomizeTree (Node a left right) g = let
 	(root, g2) = random g
 	(leftr, g3) = randomizeTree left g2
 	(rightr, g4) = randomizeTree right g3
-	in ((Node root leftr rightr), g4)
+	in (Node root leftr rightr, g4)

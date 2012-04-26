@@ -77,7 +77,7 @@ m_t2 input =
       Just s ->
         property $
          length (filter (<s) input) == 1
-         || all (==s) (filter (<=s) input)
+         || (s == minimum input && length (filter (==s) input) > 1)
       Nothing -> fail "expected Just, was Nothing"
        
 prop_t2 = (m_t2 :: [Int] -> Property)
