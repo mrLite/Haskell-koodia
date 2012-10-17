@@ -192,7 +192,7 @@ mkCounter = do
 -- Modulin System.IO dokumentaatio auttanee.
 
 hFetchLines :: Handle -> [Int] -> IO [String]
-hFetchLines h nums = hGetContents h >>= return . map (snd) . filter (\(n, _) -> elem n nums) . zipWith (\n line -> (n, line)) [1..] . lines
+hFetchLines h nums = hGetContents h >>= return . map snd . filter (\(n, _) -> elem n nums) . zipWith (,) [1..] . lines
 
 -- Tehtävä 17: CSV on tiedostoformaatti, jossa taulukollinen arvoja on
 -- tallenettu tiedostoon niin, että tiedoston yksi rivi vastaa
